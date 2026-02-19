@@ -1,0 +1,220 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+header {
+    background: #0d0d0d;
+    color: #00ffcc;
+    padding: 1rem 0;
+    border-bottom: 2px solid #00ffcc;
+}
+
+header h1 {
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    margin: 0;
+    font-size: 2.5em;
+    text-shadow: 0 0 10px #00ffcc;
+}
+
+header nav ul {
+    list-style: none;
+    padding: 0;
+    text-align: center;
+    margin-top: 10px;
+}
+
+header nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+header nav ul li a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+header nav ul li a:hover {
+    color: #00ffcc;
+    text-shadow: 0 0 5px #00ffcc;
+}
+
+section {
+    padding: 60px 0;
+    text-align: center;
+}
+
+#hero {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://source.unsplash.com/random/1600x900/?music,dark,abstract') no-repeat center center/cover;
+    color: #e0e0e0;
+    padding: 100px 0;
+}
+
+#hero h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 15px #00ffcc;
+}
+
+#hero p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+.btn-primary {
+    display: inline-block;
+    background: #00ffcc;
+    color: #1a1a1a;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #00e6b8;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+}
+
+.beats-grid {
+    background: #2a2a2a;
+    padding-bottom: 80px;
+}
+
+.beats-grid h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
+    color: #00ffcc;
+    margin-bottom: 50px;
+    text-shadow: 0 0 10px #00ffcc;
+}
+
+.beat-item {
+    background: #333;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.beat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 255, 204, 0.2);
+}
+
+.beat-item h4 {
+    font-family: 'Orbitron', sans-serif;
+    color: #00ffcc;
+    font-size: 1.8em;
+    margin-top: 0;
+}
+
+.beat-item audio {
+    width: 100%;
+    margin: 20px 0;
+}
+
+.beat-item p {
+    font-size: 1.1em;
+    color: #ccc;
+}
+
+.btn-secondary {
+    display: inline-block;
+    background: #444;
+    color: #00ffcc;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 1px solid #00ffcc;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #00ffcc;
+    color: #1a1a1a;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 255, 204, 0.5);
+}
+
+#contact form {
+    background: #333;
+    padding: 40px;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 30px auto;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+}
+
+#contact form input,
+#contact form textarea {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background: #444;
+    color: #e0e0e0;
+    font-size: 1em;
+}
+
+#contact form input::placeholder,
+#contact form textarea::placeholder {
+    color: #aaa;
+}
+
+#contact form input:focus,
+#contact form textarea:focus {
+    outline: none;
+    border-color: #00ffcc;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+}
+
+#contact form button {
+    width: 100%;
+    padding: 15px;
+    background: #00ffcc;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+#contact form button:hover {
+    background: #00e6b8;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+}
+
+footer {
+    background: #0d0d0d;
+    color: #888;
+    padding: 20px 0;
+    text-align: center;
+    border-top: 1px solid #222;
+    font-size: 0.9em;
+}
