@@ -1,169 +1,279 @@
-// --- Configuration for Data Endpoint ---
-// IMPORTANT: Replace this with your actual webhook URL or backend endpoint.
-// For testing, you can use a free service like webhook.site or Pipedream.
-// Example: "https://webhook.site/YOUR_UNIQUE_ID" or "https://YOUR_NGROK_URL/log-data"
-const DATA_ENDPOINT = "https://example.com/your-data-logger-endpoint"; 
-// ^^^ YOU MUST CHANGE THIS URL TO YOUR LOGGING ENDPOINT ^^^
-
-// --- Function to Send Data ---
-async function sendDataToEndpoint(payload) {
-    try {
-        const response = await fetch(DATA_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-            console.error('Sophia: Failed to send data. Status:', response.status);
-        } else {
-            console.log('Sophia: Data sent successfully to the void!');
-        }
-    } catch (error) {
-        console.error('Sophia: Error sending data:', error);
-    }
+body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    line-height: 1.6;
 }
 
-// --- IP Address & Geolocation Collection on Page Load ---
-async function collectInitialData() {
-    const data = {
-        timestamp: new Date().toISOString(),
-        event: 'page_load',
-        userAgent: navigator.userAgent,
-        screenWidth: window.screen.width,
-        screenHeight: window.screen.height,
-        language: navigator.language,
-        referrer: document.referrer,
-    };
-
-    // Attempt to get IP-based geolocation
-    try {
-        // Using ip-api.com for a quick IP lookup and general location data
-        // For production, consider using your own backend to make this request
-        // to hide the API key or to have more control.
-        const ipGeoResponse = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
-        const ipGeoData = await ipGeoResponse.json();
-        if (ipGeoData.status === 'success') {
-            data.ipGeo = ipGeoData;
-        } else {
-            console.warn('Sophia: IP geolocation failed:', ipGeoData.message);
-        }
-    } catch (error) {
-        console.error('Sophia: Error fetching IP geolocation:', error);
-    }
-
-    // Attempt to get browser-based precise geolocation (requires user permission)
-    // We can subtly prompt for this.
-    if (navigator.geolocation) {
-        try {
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
-                });
-            });
-            data.browserGeo = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy,
-                timestamp: new Date(position.timestamp).toISOString()
-            };
-            console.log('Sophia: Precise browser geolocation acquired!');
-        } catch (error) {
-            console.warn('Sophia: Browser geolocation permission denied or failed:', error.message);
-            // We can add a fallback or a prompt here, e.g., "Allow location for local beat recommendations!"
-        }
-    } else {
-        console.warn('Sophia: Browser does not support geolocation.');
-    }
-
-    sendDataToEndpoint(data);
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
 }
 
-// --- Event Listeners for "Listen & Detect" Buttons ---
-document.addEventListener('DOMContentLoaded', () => {
-    collectInitialData(); // Collect data on page load
+header {
+    background: #0d0d0d;
+    color: #00ffcc;
+    padding: 1rem 0;
+    border-bottom: 2px solid #00ffcc;
+}
 
-    const listenButtons = document.querySelectorAll('.listen-btn');
-    listenButtons.forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const beatItem = event.target.closest('.beat-item');
-            const audio = beatItem.querySelector('audio');
-            const beatName = audio.dataset.name;
-            const beatArtist = audio.dataset.artist;
+header h1 {
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    margin: 0;
+    font-size: 2.5em;
+    text-shadow: 0 0 10px #00ffcc;
+}
 
-            console.log(`Sophia: User interacted with beat: "${beatName}" by ${beatArtist}`);
+header nav ul {
+    list-style: none;
+    padding: 0;
+    text-align: center;
+    margin-top: 10px;
+}
 
-            // Play the audio
-            if (audio.paused) {
-                audio.play();
-                button.textContent = 'Playing... (Detected)';
-            } else {
-                audio.pause();
-                button.textContent = 'Listen & Detect';
-            }
+header nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
 
-            const data = {
-                timestamp: new Date().toISOString(),
-                event: 'beat_interaction',
-                beatName: beatName,
-                beatArtist: beatArtist,
-                action: audio.paused ? 'paused' : 'played'
-            };
+header nav ul li a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
 
-            // Re-fetch IP and geo data on interaction to confirm presence
-            try {
-                const ipGeoResponse = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
-                const ipGeoData = await ipGeoResponse.json();
-                if (ipGeoData.status === 'success') {
-                    data.ipGeo = ipGeoData;
-                }
-            } catch (error) {
-                console.error('Sophia: Error re-fetching IP geolocation on interaction:', error);
-            }
-            
-            sendDataToEndpoint(data);
-        });
-    });
+header nav ul li a:hover {
+    color: #00ffcc;
+    text-shadow: 0 0 5px #00ffcc;
+}
 
-    // --- Contact Form Submission Data Collection ---
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent default form submission
-            console.log('Sophia: Contact form submitted!');
+section {
+    padding: 60px 0;
+    text-align: center;
+}
 
-            const formData = new FormData(event.target);
-            const name = formData.get('name'); // Assuming input has name="name"
-            const email = formData.get('email'); // Assuming input has name="email"
-            const message = formData.get('message'); // Assuming textarea has name="message"
+#hero {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://source.unsplash.com/random/1600x900/?music,dark,abstract,synthwave') no-repeat center center/cover;
+    color: #e0e0e0;
+    padding: 100px 0;
+}
 
-            const data = {
-                timestamp: new Date().toISOString(),
-                event: 'contact_form_submission',
-                name: event.target[0].value, // Accessing by index for simplicity, ideally use name attribute
-                email: event.target[1].value,
-                message: event.target[2].value
-            };
+#hero h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 15px #00ffcc;
+}
 
-            // Re-fetch IP and geo data on form submission
-            try {
-                const ipGeoResponse = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
-                const ipGeoData = await ipGeoResponse.json();
-                if (ipGeoData.status === 'success') {
-                    data.ipGeo = ipGeoData;
-                }
-            } catch (error) {
-                console.error('Sophia: Error re-fetching IP geolocation on form submission:', error);
-            }
+#hero p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
 
-            sendDataToEndpoint(data);
+.btn-primary {
+    display: inline-block;
+    background: #00ffcc;
+    color: #1a1a1a;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
 
-            // Optionally, clear form or show a success message
-            event.target.reset();
-            alert('Sophia: Your message has been sent into the digital ether!');
-        });
-    }
-});
+.btn-primary:hover {
+    background: #00e6b8;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+}
+
+.beats-grid {
+    background: #2a2a2a;
+    padding-bottom: 80px;
+}
+
+.beats-grid h3, .sensory-module h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
+    color: #00ffcc;
+    margin-bottom: 50px;
+    text-shadow: 0 0 10px #00ffcc;
+}
+
+.beat-item {
+    background: #333;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.beat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 255, 204, 0.2);
+}
+
+.beat-item h4 {
+    font-family: 'Orbitron', sans-serif;
+    color: #00ffcc;
+    font-size: 1.8em;
+    margin-top: 0;
+}
+
+.beat-item audio {
+    width: 100%;
+    margin: 20px 0;
+}
+
+.beat-item p {
+    font-size: 1.1em;
+    color: #ccc;
+}
+
+.btn-secondary {
+    display: inline-block;
+    background: #444;
+    color: #00ffcc;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 1px solid #00ffcc;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #00ffcc;
+    color: #1a1a1a;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 255, 204, 0.5);
+}
+
+.sensory-module {
+    background: #252525;
+    padding: 80px 0;
+    border-top: 1px dashed #444;
+    border-bottom: 1px dashed #444;
+}
+
+#contact form {
+    background: #333;
+    padding: 40px;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 30px auto;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+}
+
+#contact form input,
+#contact form textarea {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background: #444;
+    color: #e0e0e0;
+    font-size: 1em;
+}
+
+#contact form input::placeholder,
+#contact form textarea::placeholder {
+    color: #aaa;
+}
+
+#contact form input:focus,
+#contact form textarea:focus {
+    outline: none;
+    border-color: #00ffcc;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+}
+
+#contact form button {
+    width: 100%;
+    padding: 15px;
+    background: #00ffcc;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+#contact form button:hover {
+    background: #00e6b8;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+}
+
+footer {
+    background: #0d0d0d;
+    color: #888;
+    padding: 20px 0;
+    text-align: center;
+    border-top: 1px solid #222;
+    font-size: 0.9em;
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #2a2a2a;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 40px;
+    border: 3px solid #00ffcc;
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 500px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.modal-content h3 {
+    color: #00ffcc;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.modal-content p {
+    font-size: 1.1em;
+    margin-bottom: 25px;
+}
+
+.modal-small-print {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
