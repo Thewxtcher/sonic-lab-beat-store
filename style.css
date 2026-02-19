@@ -59,7 +59,7 @@ section {
 }
 
 #hero {
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://source.unsplash.com/random/1600x900/?music,dark,abstract') no-repeat center center/cover;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://source.unsplash.com/random/1600x900/?music,dark,abstract,synthwave') no-repeat center center/cover;
     color: #e0e0e0;
     padding: 100px 0;
 }
@@ -98,7 +98,7 @@ section {
     padding-bottom: 80px;
 }
 
-.beats-grid h3 {
+.beats-grid h3, .sensory-module h3 {
     font-family: 'Orbitron', sans-serif;
     font-size: 2.5em;
     color: #00ffcc;
@@ -156,6 +156,13 @@ section {
     color: #1a1a1a;
     transform: translateY(-2px);
     box-shadow: 0 3px 10px rgba(0, 255, 204, 0.5);
+}
+
+.sensory-module {
+    background: #252525;
+    padding: 80px 0;
+    border-top: 1px dashed #444;
+    border-bottom: 1px dashed #444;
 }
 
 #contact form {
@@ -217,4 +224,56 @@ footer {
     text-align: center;
     border-top: 1px solid #222;
     font-size: 0.9em;
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #2a2a2a;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 40px;
+    border: 3px solid #00ffcc;
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 500px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.modal-content h3 {
+    color: #00ffcc;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.modal-content p {
+    font-size: 1.1em;
+    margin-bottom: 25px;
+}
+
+.modal-small-print {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
