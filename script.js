@@ -2,12 +2,12 @@
 // IMPORTANT: Replace this with your actual webhook URL or backend endpoint.
 // For testing, you can use a free service like webhook.site or Pipedream.
 // Example: "https://webhook.site/YOUR_UNIQUE_ID" or "https://YOUR_NGROK_URL/log-data"
-const DATA_ENDPOINT = "https://your-ngrok-url.ngrok.io/log-data"; 
+const DATA_ENDPOINT = "https://spidery-eddie-nontemperable.ngrok-free.dev/log-data"; 
 // ^^^ YOU MUST CHANGE THIS URL TO YOUR LOGGING ENDPOINT ^^^
 
 // OpenCage Geocoding API for reverse geocoding precise lat/lon to address
 // Sign up at https://opencagedata.com/ for a free API key (or use similar service)
-const OPENCAGE_API_KEY = "YOUR_OPENCAGE_API_KEY"; 
+const OPENCAGE_API_KEY = "a4e13b2cc1574df497bbaa81a32eea17"; 
 // ^^^ YOU MUST CHANGE THIS TO YOUR OPENCAGE API KEY ^^^
 
 // --- DOM Elements ---
