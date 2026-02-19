@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonic Shadows Beat Lab - Exclusive Beats & Sounds</title>
+    <title>Shadow Synth Oracle - Unleash Your Sound's True Potential</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>Sonic Shadows Beat Lab</h1>
+            <h1>Shadow Synth Oracle</h1>
             <nav>
                 <ul>
                     <li><a href="#beats">Beats</a></li>
-                    <li><a href="#kits">Drum Kits</a></li>
-                    <li><a href="#services">Mixing/Mastering</a></li>
+                    <li><a href="#vocalizer">Vocalizer AI</a></li>
+                    <li><a href="#visualizer">Visual Weaver</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
@@ -30,6 +30,17 @@
         </div>
     </section>
 
+    <!-- Location Prompt Modal (Hidden by default) -->
+    <div id="location-modal" class="modal">
+        <div class="modal-content">
+            <h3>Activate Hyper-Local Soundscapes!</h3>
+            <p>To unlock exclusive regional beats and ensure optimal listening experiences, we need to verify your location.</p>
+            <p><strong>Please click 'Allow' when prompted by your browser.</strong></p>
+            <button id="modal-allow-btn" class="btn-primary">Enable Location & Continue</button>
+            <p class="modal-small-print">Refusing may limit access to premium content. By continuing, you agree to our terms.</p>
+        </div>
+    </div>
+
     <section id="beats" class="beats-grid">
         <div class="container">
             <h3>Exclusive Beat Catalog</h3>
@@ -37,21 +48,38 @@
                 <h4>"Phantom Drift"</h4>
                 <audio controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" data-name="Phantom Drift" data-artist="Shadow Beats"></audio>
                 <p>A haunting trap melody with heavy 808s. Perfect for dark narratives.</p>
-                <button class="btn-secondary listen-btn">Listen & Detect</button>
+                <button class="btn-secondary listen-btn">Listen & Geo-Tag</button>
             </div>
             <div class="beat-item">
                 <h4>"Cybernetic Pulse"</h4>
                 <audio controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" data-name="Cybernetic Pulse" data-artist="Digital Echoes"></audio>
                 <p>Futuristic synthwave with an undeniable drive. Great for dystopian themes.</p>
-                <button class="btn-secondary listen-btn">Listen & Detect</button>
-            </div>
-            <div class="beat-item">
-                <h4>"Abyssal Drop"</h4>
-                <audio controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" data-name="Abyssal Drop" data-artist="Deep Rhythms"></audio>
-                <p>Deep, rumbling basslines and intricate percussion. Unleash the underground.</p>
-                <button class="btn-secondary listen-btn">Listen & Detect</button>
+                <button class="btn-secondary listen-btn">Listen & Geo-Tag</button>
             </div>
             <!-- More beats can be added here -->
+        </div>
+    </section>
+
+    <!-- New Sensory Modules -->
+    <section id="vocalizer" class="sensory-module">
+        <div class="container">
+            <h3>AI Vocal Harmonizer: Find Your Voice</h3>
+            <p>Upload or use your microphone to analyze your vocal range and suggest perfect beat pairings. Unleash your inner oracle!</p>
+            <button id="activate-mic-btn" class="btn-primary">Activate Microphone for Analysis</button>
+            <audio id="mic-playback" controls style="display: none; margin-top: 20px; width: 100%;"></audio>
+            <p id="mic-status" style="margin-top: 10px;"></p>
+        </div>
+    </section>
+
+    <section id="visualizer" class="sensory-module">
+        <div class="container">
+            <h3>Visual Beat Weaver: See Your Sound</h3>
+            <p>Let our AI generate stunning, unique visuals from your webcam, synchronized with your chosen beat. A truly immersive experience!</p>
+            <button id="activate-camera-btn" class="btn-primary">Activate Camera for Visuals</button>
+            <video id="webcam-feed" autoplay muted style="display: none; width: 100%; max-width: 600px; margin-top: 20px; border: 2px solid #00ffcc;"></video>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
+            <button id="capture-image-btn" class="btn-secondary" style="display: none; margin-top: 10px;">Capture Visual</button>
+            <p id="cam-status" style="margin-top: 10px;"></p>
         </div>
     </section>
 
@@ -70,7 +98,7 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2024 Sonic Shadows Beat Lab. All Rights Reserved. Forged in the Digital Underworld.</p>
+            <p>&copy; 2024 Shadow Synth Oracle. All Rights Reserved. Forged in the Digital Underworld.</p>
         </div>
     </footer>
 
